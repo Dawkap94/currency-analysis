@@ -28,7 +28,7 @@ def get_yearly_data(year_since: str, year_to: str, currency: str):
         return currency_dict
 
 
-def convert_yearly_usd_data_to_pln(currency_dict):
+def convert_yearly_data_to_pln(currency_dict):
     try:
         pln_amount = int(input("How many PLN do you have?"))
         pln_dict = currency_dict.copy()
@@ -36,7 +36,7 @@ def convert_yearly_usd_data_to_pln(currency_dict):
             pln_dict[f"{keys}"] = round(pln_amount / values, 3)
         return pln_dict
     except ValueError:
-        return "Wystapil blad"
+        return "Nieprawidlowe dane, wystapil blad"
 
 
 
@@ -46,4 +46,4 @@ def save_to_file(data):
     return print("Saved to file exchange rate")
 
 
-save_to_file(convert_yearly_usd_data_to_pln(get_yearly_data("2013", "2014","usd")))
+save_to_file(convert_yearly_data_to_pln(get_yearly_data("2013", "2014","usd")))
