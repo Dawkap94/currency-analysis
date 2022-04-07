@@ -2,12 +2,10 @@ import requests
 from datetime import datetime
 from statistics import mean
 
-def month_avg_usd_to_file(year_since: str, year_to: str):
 
-    pln_amount = int(input("How many PLN do you have? "))
-
-    r = requests.get(f"https://api.nbp.pl/api/exchangerates/rates/a/usd/{year_since}-01-01/{year_to}-01-01/?format=json")
-
+def get_yearly_data(year_since: str, year_to: str, currency: str):
+    r = requests.get(
+        f"https://api.nbp.pl/api/exchangerates/rates/a/{currency}/{year_since}-01-01/{year_to}-01-01/?format=json")
     if r.status_code != 200:
         print("Error. Try another time.")
     else:
@@ -27,14 +25,25 @@ def month_avg_usd_to_file(year_since: str, year_to: str):
             else:
                 avg_day_list = []
                 start_month += 1
+        return currency_dict
 
+
+def convert_yearly_usd_data_to_pln(currency_dict):
+    try:
+        pln_amount = int(input("How many PLN do you have?"))
         pln_dict = currency_dict.copy()
-
         for keys, values in currency_dict.items():
             pln_dict[f"{keys}"] = round(pln_amount / values, 3)
+        return pln_dict
+    except ValueError:
+        return "Wystapil blad"
 
-        with open("Exchange_rate.txt", "w") as currency_file:
-            currency_file.write(f" The USD/PLN exchange rate in {year_since} was: {currency_dict} \n For {pln_amount} PLN in {year_since} you could buy {pln_dict}")
-    return "Saved to file exchange rate"
 
-print(month_avg_usd_to_file("2013", "2014"))
+
+def save_to_file(data):
+    with open("exchange_rate.txt", "w") as currency_file:
+        currency_file.write(f"{data}")
+    return print("Saved to file exchange rate")
+
+
+save_to_file(convert_yearly_usd_data_to_pln(get_yearly_data("2013", "2014","usd")))
