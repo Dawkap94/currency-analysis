@@ -113,7 +113,7 @@ class ReportDataBase:
         self.suffix = suffix
 
     def create_report(self):
-        with open(f"{self.suffix}.json", "w") as currency_file:
+        with open(f"Plik raportu.{self.suffix}", "w") as currency_file:
             json.dump(self.data_to_save, currency_file)
         print("Zapisano do pliku.")
 
@@ -137,7 +137,7 @@ def main():
         maly_slownik_gold = GetDataGold(duzy_slownik)
         slownik_miesieczny_gold = maly_slownik_gold.parse_data(duzy_slownik)
         wynik_gold = slownik_miesieczny_gold
-        dane_do_pliku = ReportDataBase(wynik_gold, "Plik json z walutami")
+        dane_do_pliku = ReportDataBase(wynik_gold, "json")
         dane_do_pliku.create_report()
     else:
         maly_slownik_waluty = GetDataMoney(duzy_slownik)
@@ -145,7 +145,7 @@ def main():
         wynik_waluty = slownik_miesieczny_waluty
 
         #Zapis do pliku
-        dane_do_pliku = ReportDataBase(wynik_waluty, "Raport JSON")
+        dane_do_pliku = ReportDataBase(wynik_waluty, "json")
         dane_do_pliku.create_report()
 
 
