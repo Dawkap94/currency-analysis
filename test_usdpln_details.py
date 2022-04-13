@@ -21,3 +21,10 @@ def test_numbers_to_month_list():
        with pytest.raises(AttributeError):
               numbers_to_month([1,2,3,43,54,5])
 
+def test_numbers_to_month_with_zero():
+       with pytest.raises(ValueError):
+              numbers_to_month({'0': 0, '4': 126.558, '5': 126.15, '9': 129.271, '10': 130.599, '11': 127.903, '12': 131.766})
+
+#python wprowadzenie -
+
+
