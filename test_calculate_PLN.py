@@ -1,5 +1,5 @@
 import pytest
-from usdpln_details import numbers_to_month
+from calculate_PLN import numbers_to_month
 def test_numbers_to_month():
     result = numbers_to_month(
         {'1': 122.362, '4': 126.558, '5': 126.15, '9': 129.271, '10': 130.599, '11': 127.903, '12': 131.766})

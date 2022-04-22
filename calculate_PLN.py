@@ -4,8 +4,8 @@ from statistics import mean
 import json
 
 
-def collect_gold_json(year_since: str, year_to: str):
-    r = requests.get(f"http://api.nbp.pl/api/cenyzlota/{year_since}-01-01/{year_to}-01-01/?format=json")
+def collect_gold_json(year_since: int):
+    r = requests.get(f"http://api.nbp.pl/api/cenyzlota/{str(year_since)}-01-01/{str(year_since+1)}-01-01/?format=json")
     if r.status_code != 200:
         print("Error. Try another time.")
         return
@@ -33,9 +33,9 @@ def get_yearly_data_gold(data_list):
     return gold_dict
 
 
-def collect_currency_json(year_since: str, year_to: str, currency: str):
+def collect_currency_json(year_since: int, currency: str):
     r = requests.get(
-        f"https://api.nbp.pl/api/exchangerates/rates/a/{currency}/{year_since}-01-01/{year_to}-01-01/?format=json")
+        f"https://api.nbp.pl/api/exchangerates/rates/a/{currency}/{str(year_since)}-01-01/{str(year_since+1)}-01-01/?format=json")
     if r.status_code != 200:
         print("Error. Try another time.")
         return
@@ -90,7 +90,9 @@ def save_to_file(data):
 
 
 def main():
-    collected_currency_data = collect_currency_json("2015", "2016", "usd")
+    year_since = int(input("Which year to check?"))
+    currency = input("Which currency to check?")
+    collected_currency_data = collect_currency_json(year_since, currency)
     if collected_currency_data is None:
         print("BLAD")
         return
@@ -98,6 +100,5 @@ def main():
     converted_data = convert_yearly_data_to_pln(yearly_data_currency)
     saved_data = save_to_file(converted_data)
 
-#21/04 g. 17:00
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()
