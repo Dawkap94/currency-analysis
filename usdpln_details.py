@@ -80,7 +80,7 @@ def convert_yearly_data_to_pln(currency_dict):
             pln_dict[f"{keys}"] = round(pln_amount / values, 3)
         return pln_dict
     except ValueError:
-        return "Nieprawidlowe dane, wystapil blad"
+        return "Invalid data"
 
 
 def save_to_file(data):
@@ -90,14 +90,14 @@ def save_to_file(data):
 
 
 def main():
-    yearly_data = collect_currency_json("2015", "2016", "usd")
-    if yearly_data is None:
+    collected_currency_data = collect_currency_json("2015", "2016", "usd")
+    if collected_currency_data is None:
         print("BLAD")
         return
+    yearly_data_currency = get_yearly_data_currency(collected_currency_data)
+    converted_data = convert_yearly_data_to_pln(yearly_data_currency)
+    saved_data = save_to_file(converted_data)
 
-
-if __name__ == '__main__':
-    main()
-
-
-# 668 - 397 - 153
+#21/04 g. 17:00
+# if __name__ == '__main__':
+#     main()

@@ -1,24 +1,26 @@
-from typing import Dict
-import requests
-import datetime
-from statistics import mean
-import json
+import os
 import csv
+import datetime
+import json
+import matplotlib.pyplot as plt
+import requests
+from statistics import mean
+from typing import Dict
 from fpdf import FPDF
 
 
 class UrlConstructor:
-    def __init__(self, waluta, year_since):
+    def __init__(self, currency, year_since):
         self.year_since = year_since
-        self.waluta = waluta
+        self.currency = currency
         self.base = "http://api.nbp.pl/api"
 
-    def generate_url(self, waluta):
-        if self.waluta.upper() == "GOLD":
+    def generate_url(self, currency):
+        if self.currency.upper() == "GOLD":
             link = self.base + f"/cenyzlota/{self.year_since}-01-01/{int(self.year_since) + 1}-01-01/?format=json"
             return link
         else:
-            link = self.base + f"/exchangerates/rates/a/{waluta}/{self.year_since}-01-01/{int(self.year_since) + 1}-01-01/?format=json"
+            link = self.base + f"/exchangerates/rates/a/{currency}/{self.year_since}-01-01/{int(self.year_since) + 1}-01-01/?format=json"
             return link
 
 
@@ -104,14 +106,14 @@ class ReportDataBase:
 
     def create_report(self):
         if self.suffix == "json":
-            with open(f"Plik raportu.{self.suffix}", "w") as currency_file:
+            with open(f"Report file.{self.suffix}", "w") as currency_file:
                 json.dump(self.data_to_save, currency_file)
         elif self.suffix == "txt":
-            with open(f"Plik raportu.{self.suffix}", "w") as currency_file:
+            with open(f"Report file.{self.suffix}", "w") as currency_file:
                 currency_file.write(str(self.data_to_save))
-        print("Zapisano do pliku.")
+        print("Saved to Report file.")
         if self.suffix == "csv":
-            with open(f"Plik raportu.{self.suffix}", "w") as currency_file:
+            with open(f"Report file.{self.suffix}", "w") as currency_file:
                 file = csv.writer(currency_file)
                 for key, value in self.data_to_save.items():
                     file.writerow([key, value])
@@ -121,46 +123,57 @@ class PDFReportData(ReportDataBase):
     def __init__(self, data_to_save, suffix):
         super().__init__(data_to_save, suffix)
 
+    def create_graph(self, currency):
+        self.currency = currency
+        value = [val for val in self.data_to_save.values()]
+        months = [keys[0:3] for keys in self.data_to_save.keys()]
+        plt.title(f"Price chart for {currency.upper()}")
+        plt.plot(months, value)
+        plt.savefig(f"Graph_to_report.png")
+
     def create_report(self):
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=20)
+        pdf.set_font("Arial", size=15)
         for keys, values in self.data_to_save.items():
-            pdf.cell(200, 10, txt=f"{keys}, {values}",
+            pdf.cell(200, 10, txt=f"In {keys}, the price was {values} PLN",
                      ln=1, align='C')
-        pdf.output(f"Plik raportu.{self.suffix}")
-        print("Zapisano do pliku")
+        pdf.image("Graph_to_report.png", x=0, y=130, w=0, h=0)
+        pdf.output(f"Report file.{self.suffix}")
+        print("Saved to Report file")
+        os.remove("Graph_to_report.png")
 
 
 def main():
     # Konstrukcja URL
-    waluta = input("Podaj co chcesz zbadac?")
-    year_since = input("Wprowadz rok od ktorego chcesz sprawdzic?")
+    currency = input("Podaj co chcesz zbadac?")
+    year_since = input("Wprowadz rok, ktory chcesz sprawdzic?")
     file_format = input("W jakim formacie zapisac raport? csv/json/txt/pdf: ")
 
-    Url_object = UrlConstructor(waluta, year_since)
-    Gotowy_link = Url_object.generate_url(waluta)
+    Url_object = UrlConstructor(currency, year_since)
+    Collected_link = Url_object.generate_url(currency)
 
     # Pobranie odpowiednich danych
-    Pobieranie_danych = GetData(Gotowy_link, file_format)
+    Pobieranie_danych = GetData(Collected_link, file_format)
     Pobrane_dane = GetData.download_data(Pobieranie_danych)
 
     # GOLD
-    if waluta.upper() == "GOLD":
-        Slownik_gold_object = GetDataGold(Gotowy_link, file_format)
+    if currency.upper() == "GOLD":
+        Slownik_gold_object = GetDataGold(Collected_link, file_format)
         Slownik_gotowy = GetDataGold.parse_data(Slownik_gold_object, Pobrane_dane)
 
         # Slownik_gotowy to gotowy slownik {Miesiac: sredni kurs}
 
     # WALUTY
     else:
-        Slownik_waluty_object = GetDataMoney(Gotowy_link, file_format)
+        Slownik_waluty_object = GetDataMoney(Collected_link, file_format)
         Slownik_gotowy = GetDataMoney.parse_data(Slownik_waluty_object, Pobrane_dane)
         # Slownik_gotowy to gotowy slownik {Miesiac: sredni kurs}
 
-    # Zapis do pliku, w przypadu csv i pdf: Miesiac, sredni kurs
+    # Zapis do pliku, w przypadu pdf dodany został wykres
     if file_format == "pdf":
         raport_object = PDFReportData(Slownik_gotowy, file_format)
+        raport_object.create_graph(currency)
     else:
         raport_object = ReportDataBase(Slownik_gotowy, file_format)
 
@@ -169,5 +182,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-    # json, csv, txt
